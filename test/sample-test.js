@@ -21,7 +21,7 @@ describe("Votings contract", function () {
             expect(votingsBalance).to.equal("0");
         });
 
-        it("Transactions", async function () {
+        it("Transactions", async function() {
 
             await votings.addVoting("vote0", [addr1.address, addr2.address, addr3.address]);
 
