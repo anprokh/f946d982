@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.7.0 <0.9.0;
+pragma experimental ABIEncoderV2;
 
 import "hardhat/console.sol";
 
@@ -13,6 +14,7 @@ contract Votings {
     struct Voting {
         string name;
         uint numProposals;
+        uint balance;
         mapping (uint => Proposal) proposals;
         mapping (address => bool) voters;
         uint lifetime;
@@ -39,9 +41,8 @@ contract Votings {
         for (uint i = 0; i < _proposals.length; i++) {
             v.proposals[i] = Proposal({addr: _proposals[i], voteCount: 0});
         }
-        //        v.lifetime = block.timestamp + 259200;
-
-        v.lifetime = block.timestamp + 10;
+        v.lifetime = block.timestamp + 259200;
+        //v.lifetime = block.timestamp + 10;
     }
 
 
@@ -54,6 +55,7 @@ contract Votings {
 
         votings[votingID].proposals[proposalID].voteCount += 1;
         votings[votingID].voters[msg.sender] = true;
+        votings[votingID].balance += msg.value;
     }
 
 
@@ -81,27 +83,18 @@ contract Votings {
         }
         require(numWinners == 1, "No winner");
 
-        uint amount = address(this).balance - (address(this).balance / 10);
+        uint amount = votings[votingID].balance;
+        amount = amount - (amount / 10);
         payable(winner).transfer(amount);
         votings[votingID].finished = true;
+        votings[votingID].balance -= amount;
     }
 
 
     function withdraw(uint votingID) external isOwner payable {
         require(votingID < votings.length, "Incorrect voting ID");
         require(votings[votingID].finished, "Voting is not over");
-        payable(owner).transfer(address(this).balance);
-    }
-
-
-
-    function test() external payable {
-
-        console.log("value:", msg.value);
-        console.log("address:", address(this));
-        console.log("balance:", address(this).balance);
-        console.log("timestamp:", block.timestamp);
-
+        payable(owner).transfer(votings[votingID].balance);
     }
 
 
@@ -115,7 +108,7 @@ contract Votings {
         VotingName[] memory res = new VotingName[](votings.length);
         for (uint i = 0; i < votings.length; i++) {
             res[i] = VotingName({id: i, name: votings[i].name});
-            console.log("voting:", i, votings[i].name);
+            //console.log("voting:", i, votings[i].name);
         }
         return res;
     }
@@ -132,7 +125,7 @@ contract Votings {
         ProposalInfo[] memory res = new ProposalInfo[](votings[votingID].numProposals);
         for (uint i = 0; i < votings[votingID].numProposals; i++) {
             Proposal memory p = votings[votingID].proposals[i];
-            console.log("proposal:", i, p.addr, p.voteCount);
+            //console.log("proposal:", i, p.addr, p.voteCount);
             res[i] = ProposalInfo({id: i, addr: p.addr});
         }
         return res;
