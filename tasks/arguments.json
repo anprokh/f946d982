@@ -1,0 +1,5 @@
+{
+    "name": "vote01",
+    "lifetime": 259200,
+    "address": ["0x6635f83421bf059cd8111f180f0727128685bae4", "0x0d9825c0000992be9db998459ACDbbEb7233d499", "0x2ce271ac90acd69529f6a5340f090c336a993741"]
+}
