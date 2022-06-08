@@ -17,7 +17,7 @@ contract Votings {
         uint balance;
         mapping (uint => Proposal) proposals;
         mapping (address => bool) voters;
-        uint lifetime;
+        uint votingEndTime;
         bool finished;
     }
 
@@ -34,15 +34,14 @@ contract Votings {
     }
 
 
-    function addVoting(string calldata _name, address[] calldata _proposals) external isOwner {
+    function addVoting(string calldata _name, uint _lifetime, address[] calldata _proposals) external isOwner {
         Voting storage v = votings.push();
         v.name = _name;
         v.numProposals = _proposals.length;
         for (uint i = 0; i < _proposals.length; i++) {
             v.proposals[i] = Proposal({addr: _proposals[i], voteCount: 0});
         }
-        v.lifetime = block.timestamp + 259200;
-        //v.lifetime = block.timestamp + 10;
+        v.votingEndTime = block.timestamp + _lifetime;  // 259200 = 3 days
     }
 
 
@@ -62,7 +61,7 @@ contract Votings {
     function finish(uint votingID) external  {
         require(votingID < votings.length, "Incorrect voting ID");
         require(!votings[votingID].finished, "Voting is over");
-        require(block.timestamp > votings[votingID].lifetime, "Lifetime not expired");
+        require(block.timestamp > votings[votingID].votingEndTime, "Lifetime not expired");
 
         uint winningVoteCount = 0;
         address winner;
